@@ -69,6 +69,10 @@ if has("autocmd")
   " For all text files set 'textwidth' to 78 characters.
   autocmd FileType text setlocal textwidth=78
 
+
+  "tag
+  :set tags=./tags,./TAGS,tags,TAGS
+
   " When editing a file, always jump to the last known cursor position.
   " Don't do it when the position is invalid or when inside an event handler
   " (happens when dropping a file on gvim).
@@ -102,7 +106,7 @@ filetype plugin indent on
 syntax on
 
 set nowrap
-
+set nobackup
 set hlsearch
 set ignorecase
 
@@ -120,8 +124,21 @@ set softtabstop=4
 set tabstop=4
 set smarttab
 
-set clipboard=unnamed
+"set clipboard+=unnamed
+set clipboard=unnamedplus,autoselect
+"set guifont=Monospace\ 12
+set guifont=Ricty\ 12
 "--------20140726 end
+
+"-------jedi-vim for pyenv 20140815-----
+
+" ~/.pyenv/shimsを$PATHに追加
+" jedi-vim や vim-pyenc のロードよりも先に行う必要がある、はず。
+let $PATH = "~/.pyenv/shims:".$PATH
+
+"--------20140815 end
+"
+"
 
 "--------20140727 Z-----------------------
 "NeoBundle
@@ -132,7 +149,7 @@ filetype off
 
 if has('vim_starting')
   set runtimepath+=~/.vim/bundle/neobundle.vim
-  call neobundle#rc(expand('~/.vim/bundle/'))
+  call neobundle#begin(expand('~/.vim/bundle/'))
 endif
 " originalrepos on github
 NeoBundle 'Shougo/neobundle.vim'
@@ -150,15 +167,198 @@ NeoBundle 'jpalardy/vim-slime'
 NeoBundle 'scrooloose/syntastic'
 "カラースキーマ
 NeoBundle 'w0ng/vim-hybrid'
+" DJANGO_SETTINGS_MODULE を自動設定
+NeoBundleLazy "lambdalisue/vim-django-support", {
+      \ "autoload": {
+      \   "filetypes": ["python", "python3", "djangohtml"]
+      \ }}
 "pytho補完とか
 NeoBundle 'davidhalter/jedi-vim'
+" pyenv 処理用に vim-pyenv を追加
+" Note: depends が指定されているため jedi-vim より後にロードされる（ことを期待）
+NeoBundleLazy "lambdalisue/vim-pyenv", {
+      \ "depends": ['davidhalter/jedi-vim'],
+      \ "autoload": {
+      \   "filetypes": ["python", "python3", "djangohtml"]
+      \ }}
 "tree
 NeoBundle 'scrooloose/nerdtree'
 ""NeoBundle 'https://bitbucket.org/kovisoft/slimv'
+"ag grep
+NeoBundle 'rking/ag.vim'
+NeoBundle 't9md/vim-quickhl'
+"memo系
+NeoBundle 'fuenor/qfixhowm'
+"タブごとにディレクトリを設定
+NeoBundle 'kana/vim-tabpagecd'
+"ステータスライン修飾
+NeoBundle 'itchyny/lightline.vim'
+call neobundle#end()
+" qfixappにruntimepathを通す(パスは環境に合わせてください)
+set runtimepath+=~/path/to/qfixapp
 
+" キーマップリーダー
+let QFixHowm_Key = 'g'
+
+" howm_dirはファイルを保存したいディレクトリを設定
+let howm_dir             = '~/howm'
+let howm_filename        = '%Y/%m/%Y-%m-%d-%H%M%S.mod'
+let howm_fileencoding    = 'utf-8'
+let howm_fileformat      = 'unix'
+" ファイルタイプをmarkdownにする
+let QFixHowm_FileType = 'markdown'
+" タイトル行検索正規表現の辞書を初期化
+let QFixMRU_Title = {}
+" MRUでタイトル行とみなす正規表現(Vimの正規表現で指定)
+let QFixMRU_Title['mkd'] = '^###[^#]'
+" grepでタイトル行とみなす正規表現(使用するgrepによっては変更する必要があります)
+let QFixMRU_Title['mkd_regxp'] = '^###[^#]'
+let QFixWin_EnableMode = 1
+let QFix_UseLocationList = 1
+" カーソル位置の単語をgrep検索
+"nnoremap <silent> ,cg :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
+nnoremap <silent> ,cg :<C-u>Ag <CR><C-R><C-W>
+" unite grep に ag(The Silver Searcher) を使う
+if executable('ag')
+  let g:unite_source_grep_command = 'ag'
+  let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
+  let g:unite_source_grep_recursive_opt = ''
+endif
 filetype plugin indent on     " required!
 filetype indent on
 syntax on
+
+"----------lightline設定----------
+set laststatus=2
+let g:lightline = {
+      \ 'colorscheme': 'wombat',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ], [ 'fugitive', 'filename' ], ['ctrlpmark'] ],
+      \   'right': [ [ 'syntastic', 'lineinfo' ], ['percent'], [ 'fileformat', 'fileencoding', 'filetype' ] ]
+      \ },
+      \ 'component_function': {
+      \   'fugitive': 'MyFugitive',
+      \   'filename': 'MyFilename',
+      \   'fileformat': 'MyFileformat',
+      \   'filetype': 'MyFiletype',
+      \   'fileencoding': 'MyFileencoding',
+      \   'mode': 'MyMode',
+      \   'ctrlpmark': 'CtrlPMark',
+      \ },
+      \ 'component_expand': {
+      \   'syntastic': 'SyntasticStatuslineFlag',
+      \ },
+      \ 'component_type': {
+      \   'syntastic': 'error',
+      \ },
+      \ 'subseparator': { 'left': '|', 'right': '|' }
+      \ }
+
+function! MyModified()
+  return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
+endfunction
+
+function! MyReadonly()
+  return &ft !~? 'help' && &readonly ? 'RO' : ''
+endfunction
+
+function! MyFilename()
+  let fname = expand('%:t')
+  return fname == 'ControlP' ? g:lightline.ctrlp_item :
+        \ fname == '__Tagbar__' ? g:lightline.fname :
+        \ fname =~ '__Gundo\|NERD_tree' ? '' :
+        \ &ft == 'vimfiler' ? vimfiler#get_status_string() :
+        \ &ft == 'unite' ? unite#get_status_string() :
+        \ &ft == 'vimshell' ? vimshell#get_status_string() :
+        \ ('' != MyReadonly() ? MyReadonly() . ' ' : '') .
+        \ ('' != fname ? fname : '[No Name]') .
+        \ ('' != MyModified() ? ' ' . MyModified() : '')
+endfunction
+
+function! MyFugitive()
+  try
+    if expand('%:t') !~? 'Tagbar\|Gundo\|NERD' && &ft !~? 'vimfiler' && exists('*fugitive#head')
+      let mark = ''  " edit here for cool mark
+      let _ = fugitive#head()
+      return strlen(_) ? mark._ : ''
+    endif
+  catch
+  endtry
+  return ''
+endfunction
+
+function! MyFileformat()
+  return winwidth(0) > 70 ? &fileformat : ''
+endfunction
+
+function! MyFiletype()
+  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype : 'no ft') : ''
+endfunction
+
+function! MyFileencoding()
+  return winwidth(0) > 70 ? (strlen(&fenc) ? &fenc : &enc) : ''
+endfunction
+
+function! MyMode()
+  let fname = expand('%:t')
+  return fname == '__Tagbar__' ? 'Tagbar' :
+        \ fname == 'ControlP' ? 'CtrlP' :
+        \ fname == '__Gundo__' ? 'Gundo' :
+        \ fname == '__Gundo_Preview__' ? 'Gundo Preview' :
+        \ fname =~ 'NERD_tree' ? 'NERDTree' :
+        \ &ft == 'unite' ? 'Unite' :
+        \ &ft == 'vimfiler' ? 'VimFiler' :
+        \ &ft == 'vimshell' ? 'VimShell' :
+        \ winwidth(0) > 60 ? lightline#mode() : ''
+endfunction
+
+function! CtrlPMark()
+  if expand('%:t') =~ 'ControlP'
+    call lightline#link('iR'[g:lightline.ctrlp_regex])
+    return lightline#concatenate([g:lightline.ctrlp_prev, g:lightline.ctrlp_item
+          \ , g:lightline.ctrlp_next], 0)
+  else
+    return ''
+  endif
+endfunction
+
+let g:ctrlp_status_func = {
+  \ 'main': 'CtrlPStatusFunc_1',
+  \ 'prog': 'CtrlPStatusFunc_2',
+  \ }
+
+function! CtrlPStatusFunc_1(focus, byfname, regex, prev, item, next, marked)
+  let g:lightline.ctrlp_regex = a:regex
+  let g:lightline.ctrlp_prev = a:prev
+  let g:lightline.ctrlp_item = a:item
+  let g:lightline.ctrlp_next = a:next
+  return lightline#statusline(0)
+endfunction
+
+function! CtrlPStatusFunc_2(str)
+  return lightline#statusline(0)
+endfunction
+
+let g:tagbar_status_func = 'TagbarStatusFunc'
+
+function! TagbarStatusFunc(current, sort, fname, ...) abort
+    let g:lightline.fname = a:fname
+  return lightline#statusline(0)
+endfunction
+
+augroup AutoSyntastic
+  autocmd!
+  autocmd BufWritePost *.c,*.cpp call s:syntastic()
+augroup END
+function! s:syntastic()
+  SyntasticCheck
+  call lightline#update()
+endfunction
+
+let g:unite_force_overwrite_statusline = 0
+let g:vimfiler_force_overwrite_statusline = 0
+let g:vimshell_force_overwrite_statusline = 0
+"---------------------------------
 
 "---------20140727 end
 "---------20140727 Z----------------------
@@ -189,4 +389,57 @@ au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 "カラースキーマ
 """"""""""""""""""""""""""""
 colorscheme hybrid
+""""""""""""""end
+
+""""""""""""""""""""""""""""""
+"neocomplcache
+"""""""""""""""""""""""""""""""
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplcache.
+let g:neocomplcache_enable_at_startup = 1
+" Use smartcase.
+let g:neocomplcache_enable_smart_case = 1
+" Set minimum syntax keyword length.
+let g:neocomplcache_min_syntax_length = 3
+let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
+
+" Define dictionary.
+let g:neocomplcache_dictionary_filetype_lists = {
+    \ 'default' : ''
+    \ }
+
+" Plugin key-mappings.
+inoremap <expr><C-g>     neocomplcache#undo_completion()
+inoremap <expr><C-l>     neocomplcache#complete_common_string()
+
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+  return neocomplcache#smart_close_popup() . "\<CR>"
+endfunction
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
+inoremap <expr><C-y>  neocomplcache#close_popup()
+inoremap <expr><C-e>  neocomplcache#cancel_popup()
+"""""""""""""""""end
+" -------------------------------------------------------------------
+" vim-quickhl関連 {{{
+"
+nmap <Space>m <Plug>(quickhl-manual-this)
+xmap <Space>m <Plug>(quickhl-manual-this)
+nmap <Space>M <Plug>(quickhl-manual-reset)
+xmap <Space>M <Plug>(quickhl-manual-reset)
+"}}}
+
+""""""""""""""""""""""""
+"jedy-vim
+"""""""""""""""""""""""""
+if g:jedi#popup_on_dot
+  inoremap <buffer> . .<C-R>=jedi#do_popup_on_dot() ? "\<lt>C-X>\<lt>C-O>\<lt>C-P>" : ""<CR>
+end
 """"""""""""""end
