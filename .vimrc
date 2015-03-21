@@ -193,6 +193,9 @@ NeoBundle 'fuenor/qfixhowm'
 NeoBundle 'kana/vim-tabpagecd'
 "ステータスライン修飾
 NeoBundle 'itchyny/lightline.vim'
+"Git系
+NeoBundle 'cohama/agit.vim'
+NeoBundle 'tpope/vim-fugitive.git'
 call neobundle#end()
 " qfixappにruntimepathを通す(パスは環境に合わせてください)
 set runtimepath+=~/path/to/qfixapp
