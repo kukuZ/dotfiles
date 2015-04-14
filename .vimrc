@@ -196,10 +196,35 @@ NeoBundle 'itchyny/lightline.vim'
 "Git系
 NeoBundle 'cohama/agit.vim'
 NeoBundle 'tpope/vim-fugitive.git'
+"Ubuntu用のEscでの入力切替
+NeoBundle 'fuenor/im_control.vim'
+
 call neobundle#end()
 " qfixappにruntimepathを通す(パスは環境に合わせてください)
 set runtimepath+=~/path/to/qfixapp
+""""""""""""""""""""日本語固定モード設定
+"日本語入力固定モード
+set statusline+=%{IMStatus('[JPANESE]')}
+" 「日本語入力固定モード」の動作モード
+let IM_CtrlMode = 1
+" 「日本語入力固定モード」切替キー
+inoremap <silent> <C-j> <C-r>=IMState('FixMode')<CR>
 
+" IBus 1.5以降
+function! IMCtrl(cmd)
+  let cmd = a:cmd
+  if cmd == 'On'
+    let res = system('ibus engine "mozc-jp"')
+  elseif cmd == 'Off'
+    let res = system('ibus engine "xkb:jp::jpn"')
+  endif
+  return ''
+endfunction
+
+" <ESC>押下後のIM切替開始までの反応が遅い場合はttimeoutlenを短く設定してみてください。
+" IMCtrl()のsystem()コマンド実行時に&を付けて非同期で実行するという方法でも体感速度が上がる場合があります。
+set timeout timeoutlen=3000 ttimeoutlen=100 
+""""""""""""""""""""""""
 " キーマップリーダー
 let QFixHowm_Key = 'g'
 
@@ -237,7 +262,7 @@ let g:lightline = {
       \ 'colorscheme': 'wombat',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ], [ 'fugitive', 'filename' ], ['ctrlpmark'] ],
-      \   'right': [ [ 'syntastic', 'lineinfo' ], ['percent'], [ 'fileformat', 'fileencoding', 'filetype' ] ]
+      \   'right': [ [ 'syntastic', 'lineinfo' ], ['percent'], [ 'fileformat', 'fileencoding', 'filetype' ], ['imstatus'] ]
       \ },
       \ 'component_function': {
       \   'fugitive': 'MyFugitive',
@@ -247,6 +272,7 @@ let g:lightline = {
       \   'fileencoding': 'MyFileencoding',
       \   'mode': 'MyMode',
       \   'ctrlpmark': 'CtrlPMark',
+      \   'imstatus': 'MyIMStatus',
       \ },
       \ 'component_expand': {
       \   'syntastic': 'SyntasticStatuslineFlag',
@@ -356,6 +382,9 @@ augroup END
 function! s:syntastic()
   SyntasticCheck
   call lightline#update()
+endfunction
+function! MyIMStatus()
+  return IMStatus('[INP-JPN]')
 endfunction
 
 let g:unite_force_overwrite_statusline = 0
