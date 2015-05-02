@@ -124,8 +124,11 @@ set expandtab
 set tabstop=4
 set smarttab
 
-"set clipboard+=unnamed
-set clipboard=unnamedplus,autoselect
+if has("mac")
+  set clipboard+=unnamed
+else
+  set clipboard=unnamedplus,autoselect
+end
 "set guifont=Monospace\ 12
 set guifont=Ricty\ 12
 "--------20140726 end
