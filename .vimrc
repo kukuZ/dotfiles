@@ -165,7 +165,10 @@ NeoBundle 'ujihisa/unite-colorscheme'
 "ファイル操作
 NeoBundle 'Shougo/vimfiler'
 NeoBundle 'Shougo/neocomplcache'
+NeoBundle 'Shougo/neocomplete'
+
 NeoBundle 'Shougo/neosnippet'
+NeoBundle 'Shougo/neosnippet-snippets'
 NeoBundle 'jpalardy/vim-slime'
 NeoBundle 'scrooloose/syntastic'
 "カラースキーマ
