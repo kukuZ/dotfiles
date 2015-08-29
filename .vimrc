@@ -124,6 +124,10 @@ set expandtab
 set tabstop=4
 set smarttab
 
+" Undo履歴をファイルに保存する
+set undodir=$HOME/.vim/undodir
+set undofile
+
 if has("mac")
   set clipboard+=unnamed
 else
@@ -201,6 +205,19 @@ NeoBundle 'cohama/agit.vim'
 NeoBundle 'tpope/vim-fugitive.git'
 "Ubuntu用のEscでの入力切替
 NeoBundle 'fuenor/im_control.vim'
+"yank
+NeoBundle 'LeafCage/yankround.vim'
+NeoBundle 'kien/ctrlp.vim'
+"html css js sass系のツール
+NeoBundle 'mattn/emmet-vim'
+NeoBundle 'taichouchou2/surround.vim'
+NeoBundle 'open-browser.vim'
+NeoBundle 'mattn/webapi-vim'
+"NeoBundle 'tell-k/vim-browsereload-mac'
+NeoBundle 'hail2u/vim-css3-syntax'
+NeoBundle 'taichouchou2/html5.vim'
+NeoBundle 'taichouchou2/vim-javascript'
+NeoBundle 'kchmck/vim-coffee-script'
 
 call neobundle#end()
 " qfixappにruntimepathを通す(パスは環境に合わせてください)
@@ -402,7 +419,7 @@ let g:vimshell_force_overwrite_statusline = 0
 " 入力モードで開始する
 let g:unite_enable_start_insert=1
 " バッファ一覧
-noremap <C-P> :Unite buffer<CR>
+noremap <C-B> :Unite buffer<CR>
 " ファイル一覧
 noremap <C-N> :Unite -buffer-name=file file<CR>
 " 最近使ったファイルの一覧
@@ -419,6 +436,26 @@ au FileType unite inoremap <silent> <buffer> <expr> <C-K> unite#do_action('vspli
 au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
 au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 """""""""20140727 end
+
+
+
+""""""""""""yankround"""""""""""""""
+" yankround.vim {{{
+"" キーマップ
+nmap p <Plug>(yankround-p)
+nmap P <Plug>(yankround-P)
+nmap <C-p> <Plug>(yankround-prev)
+nmap <C-n> <Plug>(yankround-next)
+"yankround起動時以外はUnit使う
+nnoremap <silent><SID>(ctrlp) :<C-u>CtrlP<CR>
+nnoremap <silent><SID>(Unitn) :<C-u>:Unite -buffer-name=file file<CR>
+nmap <expr><C-p> yankround#is_active() ? "\<Plug>(yankround-prev)" : "<SID>(ctrlp)"
+nmap <expr><C-n> yankround#is_active() ? "\<Plug>(yankround-next)" : "<SID>(Unitn)"
+"" 履歴取得数
+let g:yankround_max_history = 50
+""履歴一覧(kien/ctrlp.vim)
+nnoremap <silent>g<C-p> :<C-u>Unite YankRound<CR>
+" }}}
 
 """""""""""""""""""""""""""""
 "カラースキーマ
