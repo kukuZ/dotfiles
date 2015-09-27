@@ -170,6 +170,7 @@ NeoBundle 'ujihisa/unite-colorscheme'
 NeoBundle 'Shougo/vimfiler'
 NeoBundle 'Shougo/neocomplcache'
 NeoBundle 'Shougo/neocomplete'
+NeoBundle 'shougo/unite-outline'
 
 NeoBundle 'Shougo/neosnippet'
 NeoBundle 'Shougo/neosnippet-snippets'
@@ -205,7 +206,7 @@ NeoBundle 'kana/vim-tabpagecd'
 NeoBundle 'itchyny/lightline.vim'
 "Git系
 NeoBundle 'cohama/agit.vim'
-NeoBundle 'tpope/vim-fugitive.git'
+NeoBundle 'tpope/vim-fugitive'
 "Ubuntu用のEscでの入力切替
 NeoBundle 'fuenor/im_control.vim'
 "yank
@@ -213,7 +214,7 @@ NeoBundle 'LeafCage/yankround.vim'
 NeoBundle 'kien/ctrlp.vim'
 "html css js sass系のツール
 NeoBundle 'mattn/emmet-vim'
-NeoBundle 'taichouchou2/surround.vim'
+NeoBundle 'surround.vim'
 NeoBundle 'open-browser.vim'
 NeoBundle 'mattn/webapi-vim'
 "NeoBundle 'tell-k/vim-browsereload-mac'
@@ -459,6 +460,23 @@ let g:yankround_max_history = 50
 ""履歴一覧(kien/ctrlp.vim)
 nnoremap <silent>g<C-p> :<C-u>Unite YankRound<CR>
 " }}}
+
+
+""""""""""""よく使うショートカット""""""""
+nnoremap <silent>,t :<C-u>tabnew<CR>
+nnoremap <silent>,n :<C-u>NERDTree<CR>
+nnoremap <silent>,o :<C-u>Unite -vertical -no-quit outline<CR>
+let g:unite_split_rule = 'botright'
+
+noremap j gj
+noremap k gk
+noremap <S-h>   ^
+noremap <S-j>   }
+noremap <S-k>   {
+noremap <S-l>   $
+noremap m  %
+nnoremap <Space>v  :vs<CR>:<C-u>VimShell<CR>
+
 
 """""""""""""""""""""""""""""
 "カラースキーマ
