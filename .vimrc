@@ -168,8 +168,9 @@ NeoBundle 'Shougo/unite.vim'
 NeoBundle 'ujihisa/unite-colorscheme'
 "ファイル操作
 NeoBundle 'Shougo/vimfiler'
-NeoBundle 'Shougo/neocomplcache'
+"NeoBundle 'Shougo/neocomplcache'
 NeoBundle 'Shougo/neocomplete'
+
 NeoBundle 'shougo/unite-outline'
 
 NeoBundle 'Shougo/neosnippet'
@@ -223,6 +224,11 @@ NeoBundle 'taichouchou2/html5.vim'
 NeoBundle 'taichouchou2/vim-javascript'
 NeoBundle 'kchmck/vim-coffee-script'
 
+"Markdown系のためのツール
+NeoBundle 'tpope/vim-markdown'
+NeoBundle 'thinca/vim-quickrun'
+NeoBundle 'kannokanno/previm'
+
 call neobundle#end()
 " qfixappにruntimepathを通す(パスは環境に合わせてください)
 set runtimepath+=~/path/to/qfixapp
@@ -259,6 +265,8 @@ let howm_fileencoding    = 'utf-8'
 let howm_fileformat      = 'unix'
 " ファイルタイプをmarkdownにする
 let QFixHowm_FileType = 'markdown'
+" タイトル記号
+let QFixHowm_Title = '#'
 " タイトル行検索正規表現の辞書を初期化
 let QFixMRU_Title = {}
 " MRUでタイトル行とみなす正規表現(Vimの正規表現で指定)
@@ -461,6 +469,14 @@ let g:yankround_max_history = 50
 nnoremap <silent>g<C-p> :<C-u>Unite YankRound<CR>
 " }}}
 
+""""""""""""""""""""  for markdown """""""""""""""""""2
+" Previm
+let g:previm_open_cmd = ''
+nnoremap [previm] <Nop>
+nmap <Space>p [previm]
+nnoremap <silent> [previm]o :<C-u>PrevimOpen<CR>
+nnoremap <silent> [previm]r :call previm#refresh()<CR>
+
 
 """"""""""""よく使うショートカット""""""""
 nnoremap <silent>,t :<C-u>tabnew<CR>
@@ -481,45 +497,125 @@ nnoremap <Space>v  :vs<CR>:<C-u>VimShell<CR>
 """""""""""""""""""""""""""""
 "カラースキーマ
 """"""""""""""""""""""""""""
+set background=dark
 colorscheme hybrid
 """"""""""""""end
 
 """"""""""""""""""""""""""""""
-"neocomplcache
+"neocomplcache neocomplete使うのでコメントアウト
 """""""""""""""""""""""""""""""
 " Disable AutoComplPop.
-let g:acp_enableAtStartup = 0
+"let g:acp_enableAtStartup = 0
 " Use neocomplcache.
-let g:neocomplcache_enable_at_startup = 1
+"et g:neocomplcache_enable_at_startup = 1
 " Use smartcase.
-let g:neocomplcache_enable_smart_case = 1
+"et g:neocomplcache_enable_smart_case = 1
 " Set minimum syntax keyword length.
-let g:neocomplcache_min_syntax_length = 3
-let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
+"et g:neocomplcache_min_syntax_length = 3
+"et g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
+"
+" Define dictionary.
+"et g:neocomplcache_dictionary_filetype_lists = {
+"   \ 'default' : ''
+"   \ }
+"
+" Plugin key-mappings.
+"noremap <expr><C-g>     neocomplcache#undo_completion()
+"noremap <expr><C-l>     neocomplcache#complete_common_string()
+"
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+"noremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+"unction! s:my_cr_function()
+" return neocomplcache#smart_close_popup() . "\<CR>"
+"ndfunction
+" <TAB>: completion.
+"noremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+"noremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
+"noremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
+"noremap <expr><C-y>  neocomplcache#close_popup()
+"noremap <expr><C-e>  neocomplcache#cancel_popup()
+"""""""""""""""""end
+"------------------------------------
+" neocomplete.vim
+"------------------------------------
+"Note: This option must set it in .vimrc(_vimrc).  NOT IN .gvimrc(_gvimrc)!
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplete.
+let g:neocomplete#enable_at_startup = 1
+" Use smartcase.
+let g:neocomplete#enable_smart_case = 1
+" Set minimum syntax keyword length.
+let g:neocomplete#sources#syntax#min_keyword_length = 3
+let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
 
 " Define dictionary.
-let g:neocomplcache_dictionary_filetype_lists = {
-    \ 'default' : ''
-    \ }
+let g:neocomplete#sources#dictionary#dictionaries = {
+    \ 'default' : '',
+    \ 'vimshell' : $HOME.'/.vimshell_hist',
+    \ 'scheme' : $HOME.'/.gosh_completions'
+        \ }
+
+" Define keyword.
+if !exists('g:neocomplete#keyword_patterns')
+    let g:neocomplete#keyword_patterns = {}
+endif
+let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+let g:neocomplete#keyword_patterns['python3'] = '\h\w*\|[^. \t]\.\w*'
+let g:neocomplete#keyword_patterns['python'] = '\h\w*\|[^. \t]\.\w*'
 
 " Plugin key-mappings.
-inoremap <expr><C-g>     neocomplcache#undo_completion()
-inoremap <expr><C-l>     neocomplcache#complete_common_string()
+inoremap <expr><C-g>     neocomplete#undo_completion()
+inoremap <expr><C-l>     neocomplete#complete_common_string()
 
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
 inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
 function! s:my_cr_function()
-  return neocomplcache#smart_close_popup() . "\<CR>"
+  return (pumvisible() ? "\<C-y>" : "" ) . "\<CR>"
+  " For no inserting <CR> key.
+  "return pumvisible() ? "\<C-y>" : "\<CR>"
 endfunction
 " <TAB>: completion.
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 " <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
-inoremap <expr><C-y>  neocomplcache#close_popup()
-inoremap <expr><C-e>  neocomplcache#cancel_popup()
+inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+" Close popup by <Space>.
+"inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
+
+" AutoComplPop like behavior.
+"let g:neocomplete#enable_auto_select = 1
+
+" Shell like behavior(not recommended).
+"set completeopt+=longest
+"let g:neocomplete#enable_auto_select = 1
+"let g:neocomplete#disable_auto_complete = 1
+"inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
+
+" Enable omni completion.
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+"autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+
+" Enable heavy omni completion.
+if !exists('g:neocomplete#sources#omni#input_patterns')
+  let g:neocomplete#sources#omni#input_patterns = {}
+endif
+"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
+"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+
+" For perlomni.vim setting.
+" https://github.com/c9s/perlomni.vim
+let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
+
 """""""""""""""""end
+
 " -------------------------------------------------------------------
 " vim-quickhl関連 {{{
 "
@@ -532,9 +628,22 @@ xmap <Space>M <Plug>(quickhl-manual-reset)
 """"""""""""""""""""""""
 "jedy-vim
 """""""""""""""""""""""""
-if g:jedi#popup_on_dot
-  inoremap <buffer> . .<C-R>=jedi#do_popup_on_dot() ? "\<lt>C-X>\<lt>C-O>\<lt>C-P>" : ""<CR>
-end
+"if g:jedi#popup_on_dot
+"  inoremap <buffer> . .<C-R>=jedi#do_popup_on_dot() ? "\<lt>C-X>\<lt>C-O>\<lt>C-P>" : ""<CR>
+"end
+autocmd FileType python setlocal omnifunc=jedi#completions
+let g:jedi#completions_enabled = 0
+let g:jedi#auto_vim_configuration = 0
+let g:jedi#smart_auto_mappings = 0
+if !exists('g:neocomplete#force_omni_input_patterns')
+    let g:neocomplete#force_omni_input_patterns = {}
+endif
+
+let g:neocomplete#force_omni_input_patterns.python =
+\ '\%([^. \t]\.\|^\s*@\|^\s*from\s.\+import \|^\s*from \|^\s*import \)\w*'
+"let g:neocomplete#force_omni_input_patterns.python = '\h\w*\|[^. \t]\.\w*'
+" alternative pattern: '\h\w*\|[^. \t]\.\w*'
+
 """"""""""""""end
 
 """"""""""mac
