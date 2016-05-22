@@ -222,6 +222,7 @@ NeoBundle 'mattn/webapi-vim'
 NeoBundle 'hail2u/vim-css3-syntax'
 NeoBundle 'taichouchou2/vim-javascript'
 NeoBundle 'kchmck/vim-coffee-script'
+NeoBundle 'marijnh/tern_for_vim'
 
 "Markdown系のためのツール
 NeoBundle 'tpope/vim-markdown'
