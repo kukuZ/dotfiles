@@ -220,7 +220,6 @@ NeoBundle 'open-browser.vim'
 NeoBundle 'mattn/webapi-vim'
 "NeoBundle 'tell-k/vim-browsereload-mac'
 NeoBundle 'hail2u/vim-css3-syntax'
-NeoBundle 'taichouchou2/html5.vim'
 NeoBundle 'taichouchou2/vim-javascript'
 NeoBundle 'kchmck/vim-coffee-script'
 
@@ -551,6 +550,8 @@ let g:neocomplete#enable_smart_case = 1
 let g:neocomplete#sources#syntax#min_keyword_length = 3
 let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
 
+" 補完に時間がかかってもスキップしない
+let g:neocomplete#skip_auto_completion_time = ""
 " Define dictionary.
 let g:neocomplete#sources#dictionary#dictionaries = {
     \ 'default' : '',
@@ -586,6 +587,8 @@ inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " Close popup by <Space>.
 "inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
 
+"inoremap <expr><CR>   pumvisible() ? "\<C-n>" . neocomplete#close_popup()  : "<CR>"
+inoremap <expr><CR> pumvisible() ? neocomplete#close_popup() : "<CR>"
 " AutoComplPop like behavior.
 "let g:neocomplete#enable_auto_select = 1
 
