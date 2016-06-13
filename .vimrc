@@ -220,14 +220,26 @@ NeoBundle 'open-browser.vim'
 NeoBundle 'mattn/webapi-vim'
 "NeoBundle 'tell-k/vim-browsereload-mac'
 NeoBundle 'hail2u/vim-css3-syntax'
-NeoBundle 'taichouchou2/vim-javascript'
-NeoBundle 'kchmck/vim-coffee-script'
-NeoBundle 'marijnh/tern_for_vim'
+NeoBundle 'othree/html5.vim'
 
 "Markdown系のためのツール
 NeoBundle 'tpope/vim-markdown'
 NeoBundle 'thinca/vim-quickrun'
 NeoBundle 'kannokanno/previm'
+
+"javascript
+NeoBundleLazy 'marijnh/tern_for_vim', {
+      \ 'build' : 'npm install',
+      \ 'autoload' : {
+      \   'functions': ['tern#Complete', 'tern#Enable'],
+      \   'filetypes' : 'javascript'
+      \ }}
+NeoBundle 'kchmck/vim-coffee-script'
+NeoBundle 'taichouchou2/vim-javascript'
+NeoBundle 'moll/vim-node'
+NeoBundleLazy 'jelera/vim-javascript-syntax', {'autoload':{'filetypes':['javascript']}}
+NeoBundle 'scrooloose/syntastic'
+
 
 call neobundle#end()
 " qfixappにruntimepathを通す(パスは環境に合わせてください)
@@ -501,42 +513,6 @@ set background=dark
 colorscheme hybrid
 """"""""""""""end
 
-""""""""""""""""""""""""""""""
-"neocomplcache neocomplete使うのでコメントアウト
-"""""""""""""""""""""""""""""""
-" Disable AutoComplPop.
-"let g:acp_enableAtStartup = 0
-" Use neocomplcache.
-"et g:neocomplcache_enable_at_startup = 1
-" Use smartcase.
-"et g:neocomplcache_enable_smart_case = 1
-" Set minimum syntax keyword length.
-"et g:neocomplcache_min_syntax_length = 3
-"et g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
-"
-" Define dictionary.
-"et g:neocomplcache_dictionary_filetype_lists = {
-"   \ 'default' : ''
-"   \ }
-"
-" Plugin key-mappings.
-"noremap <expr><C-g>     neocomplcache#undo_completion()
-"noremap <expr><C-l>     neocomplcache#complete_common_string()
-"
-" Recommended key-mappings.
-" <CR>: close popup and save indent.
-"noremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-"unction! s:my_cr_function()
-" return neocomplcache#smart_close_popup() . "\<CR>"
-"ndfunction
-" <TAB>: completion.
-"noremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-" <C-h>, <BS>: close popup and delete backword char.
-"noremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
-"noremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
-"noremap <expr><C-y>  neocomplcache#close_popup()
-"noremap <expr><C-e>  neocomplcache#cancel_popup()
-"""""""""""""""""end
 "------------------------------------
 " neocomplete.vim
 "------------------------------------
@@ -567,6 +543,7 @@ endif
 let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 let g:neocomplete#keyword_patterns['python3'] = '\h\w*\|[^. \t]\.\w*'
 let g:neocomplete#keyword_patterns['python'] = '\h\w*\|[^. \t]\.\w*'
+let g:neocomplete#keyword_patterns['javascript'] = '\h\w*\'
 
 " Plugin key-mappings.
 inoremap <expr><C-g>     neocomplete#undo_completion()
@@ -602,7 +579,14 @@ inoremap <expr><CR> pumvisible() ? neocomplete#close_popup() : "<CR>"
 " Enable omni completion.
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+
+"autocmd FileType javascript :setl omnifunc=jscomplete#CompleteJS
+"if !exists('g:neocomplcache_omni_functions')
+"  let g:neocomplcache_omni_functions = {}
+"endif
+"let g:neocomplcache_omni_functions.javascript = 'nodejscomplete#CompleteJS'
+"let g:node_usejscomplete = 1
+
 "autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
 autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 
@@ -617,6 +601,7 @@ endif
 " For perlomni.vim setting.
 " https://github.com/c9s/perlomni.vim
 let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
+
 
 """""""""""""""""end
 
@@ -635,18 +620,20 @@ xmap <Space>M <Plug>(quickhl-manual-reset)
 "if g:jedi#popup_on_dot
 "  inoremap <buffer> . .<C-R>=jedi#do_popup_on_dot() ? "\<lt>C-X>\<lt>C-O>\<lt>C-P>" : ""<CR>
 "end
-autocmd FileType python setlocal omnifunc=jedi#completions
-let g:jedi#completions_enabled = 0
-let g:jedi#auto_vim_configuration = 0
-let g:jedi#smart_auto_mappings = 0
-if !exists('g:neocomplete#force_omni_input_patterns')
-    let g:neocomplete#force_omni_input_patterns = {}
+if expand("%:t") =~ ".*\.py"
+    autocmd FileType python setlocal omnifunc=jedi#completions
+    let g:jedi#completions_enabled = 0
+    let g:jedi#auto_vim_configuration = 0
+    let g:jedi#smart_auto_mappings = 0
+    if !exists('g:neocomplete#force_omni_input_patterns')
+        let g:neocomplete#force_omni_input_patterns = {}
+    endif
+    
+    let g:neocomplete#force_omni_input_patterns.python =
+    \ '\%([^. \t]\.\|^\s*@\|^\s*from\s.\+import \|^\s*from \|^\s*import \)\w*'
+    "let g:neocomplete#force_omni_input_patterns.python = '\h\w*\|[^. \t]\.\w*'
+    " alternative pattern: '\h\w*\|[^. \t]\.\w*'
 endif
-
-let g:neocomplete#force_omni_input_patterns.python =
-\ '\%([^. \t]\.\|^\s*@\|^\s*from\s.\+import \|^\s*from \|^\s*import \)\w*'
-"let g:neocomplete#force_omni_input_patterns.python = '\h\w*\|[^. \t]\.\w*'
-" alternative pattern: '\h\w*\|[^. \t]\.\w*'
 
 """"""""""""""end
 
