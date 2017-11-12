@@ -238,7 +238,6 @@ NeoBundle 'kchmck/vim-coffee-script'
 NeoBundle 'taichouchou2/vim-javascript'
 NeoBundle 'moll/vim-node'
 NeoBundleLazy 'jelera/vim-javascript-syntax', {'autoload':{'filetypes':['javascript']}}
-NeoBundle 'scrooloose/syntastic'
 
 
 call neobundle#end()
@@ -419,17 +418,26 @@ function! TagbarStatusFunc(current, sort, fname, ...) abort
   return lightline#statusline(0)
 endfunction
 
+let g:syntastic_check_on_open = 1
+let g:syntastic_python_python_exe = 'python3'
+let g:syntastic_python_checkers = ['flake8', 'mypy', 'pep257']
+let g:syntastic_python_flake8_args = '--max-line-length=120'
+
 augroup AutoSyntastic
   autocmd!
   autocmd BufWritePost *.c,*.cpp call s:syntastic()
+  autocmd BufWritePost *.py call s:syntastic()
 augroup END
 function! s:syntastic()
+  w
   SyntasticCheck
   call lightline#update()
 endfunction
 function! MyIMStatus()
   return IMStatus('[INP-JPN]')
 endfunction
+
+
 
 let g:unite_force_overwrite_statusline = 0
 let g:vimfiler_force_overwrite_statusline = 0
@@ -459,6 +467,10 @@ au FileType unite inoremap <silent> <buffer> <expr> <C-K> unite#do_action('vspli
 " ESCキーを2回押すと終了する
 au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
 au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
+"" セーフモードの設定(OFF
+let g:vimfiler_safe_mode_by_default=0
+" Unite bookmarkからディレクトリ選択した時はvimfire使う
+call unite#custom_default_action('source/bookmark/directory' , 'vimfiler')
 """""""""20140727 end
 
 
@@ -492,7 +504,8 @@ nnoremap <silent> [previm]r :call previm#refresh()<CR>
 
 """"""""""""よく使うショートカット""""""""
 nnoremap <silent>,t :<C-u>tabnew<CR>
-nnoremap <silent>,n :<C-u>NERDTree<CR>
+nnoremap <silent>,n :<C-u>VimFiler<CR>
+nnoremap <silent>,b :<C-u>Unite bookmark<CR>
 nnoremap <silent>,o :<C-u>Unite -vertical -no-quit outline<CR>
 let g:unite_split_rule = 'botright'
 
